@@ -5,19 +5,31 @@ import NoPage from "./pages/NoPage";
 import './App.css';
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+
+
+
 const App = () => {
   return (
     <>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NoPage />} />
-        </Routes>
+        <RouteHandler />
       </BrowserRouter>
     </>
-  );
+  )
 };
 
-export default App;
+const RouteHandler = () => {
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to={"/login"}/>} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<NoPage />} />
+      </Routes>
+    </>
+  )
+}
+
+export default App

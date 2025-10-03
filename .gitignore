@@ -1,14 +1,10 @@
-# Node
-node_modules/
+# Backend
 Backend/node_modules/
-Frontend/node_modules/
-
-# Env files
 Backend/.env
-.env
-.env.local
-.env.production
 
-# Logs
-logs
-*.log
+# Frontend (if it has node_modules)
+Frontend/node_modules/
+Frontend/.env
+
+# Python virtual environment
+venv-gitfilter/
