@@ -1,0 +1,14 @@
+# Node
+node_modules/
+Backend/node_modules/
+Frontend/node_modules/
+
+# Env files
+Backend/.env
+.env
+.env.local
+.env.production
+
+# Logs
+logs
+*.log
