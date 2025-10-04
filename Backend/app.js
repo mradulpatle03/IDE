@@ -30,7 +30,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-app.listen(PORT, () => console.log("Server is running on port 5000"));
+app.listen(PORT, () => console.log("Server is running on port",PORT));
 
 // error handler
 app.use(function(err, req, res, next) {

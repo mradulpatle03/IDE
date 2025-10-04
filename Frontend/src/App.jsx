@@ -1,12 +1,11 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./App.css";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import NoPage from "./pages/NoPage";
-import './App.css';
-import Signup from "./pages/Signup";
+import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
-
-
+import Editor from "./pages/Editor";
 
 const App = () => {
   return (
@@ -15,7 +14,7 @@ const App = () => {
         <RouteHandler />
       </BrowserRouter>
     </>
-  )
+  );
 };
 
 const RouteHandler = () => {
@@ -23,13 +22,20 @@ const RouteHandler = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to={"/login"}/>} />
-        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/"
+          element={isLoggedIn ? <Home /> : <Navigate to={"/login"} />}
+        />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/editor/:id"
+          element={isLoggedIn ? <Editor /> : <Navigate to={"/login"} />}
+        />
         <Route path="*" element={<NoPage />} />
       </Routes>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
