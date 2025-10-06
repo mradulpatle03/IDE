@@ -3,13 +3,14 @@ import logo from "../images/logos/logo.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { api_base_url } from "../helper";
+import { useDispatch } from "react-redux";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
 
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const submitForm = (e) => {
     e.preventDefault();
     fetch(api_base_url + "/login", {
@@ -26,9 +27,10 @@ const Login = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("isLoggedIn", true);
-          window.location.href = "/";
+          // localStorage.setItem("token", data.token);
+          // localStorage.setItem("isLoggedIn", true);
+          dispatch(addUser());
+          navigate("/");
         } else {
           toast.error(data.msg);
         }
@@ -72,8 +74,8 @@ const Login = () => {
           </div>
 
           <h2 className="text-3xl font-bold text-white text-center mb-6 font-mono drop-shadow-[0_0_10px_#ff0044]">
-          Welcome Back!
-        </h2>
+            Welcome Back!
+          </h2>
 
           {/* Email */}
           <div className="w-full mb-4">
