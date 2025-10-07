@@ -7,7 +7,8 @@ const imagekit = require("../config/imagekit");
 
 const secret = "secret";
 
-export const upload = multer();
+const upload = multer();
+exports.upload = upload;
 
 function getStartupCode(language) {
   if (language.toLowerCase() === "python") {

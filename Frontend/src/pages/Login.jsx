@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { api_base_url } from "../helper";
 import { useDispatch } from "react-redux";
-
+import { addUser } from "../Store/user.Reducer";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");

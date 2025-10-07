@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 const initialState = {
-    isAuthenitcate: false
+    isAuthenticate: false
 }
 
 const userSlice = createSlice({
@@ -8,10 +8,10 @@ const userSlice = createSlice({
     initialState,
     reducers:{
         addUser:(state)=>{
-            state.isAuthenitcate = true
+            state.isAuthenticate = true
         },
         removeUser:(state,action)=>{
-            state.isAuthenitcate = false
+            state.isAuthenticate = false
         }
     }
 })
