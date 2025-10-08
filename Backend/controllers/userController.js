@@ -1,127 +1,82 @@
 const userModel = require("../models/userModel");
-const projectModel = require("../models/projectModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const imagekit = require("../config/imagekit");
 
-const secret = "secret";
+const secret = process.env.SECRET_KEY;
 
 const upload = multer();
 exports.upload = upload;
 
-function getStartupCode(language) {
-  if (language.toLowerCase() === "python") {
-    return 'print("Hello World")';
-  } else if (language.toLowerCase() === "java") {
-    return 'public class Main { public static void main(String[] args) { System.out.println("Hello World"); } }';
-  } else if (language.toLowerCase() === "javascript") {
-    return 'console.log("Hello World");';
-  } else if (language.toLowerCase() === "cpp") {
-    return '#include <iostream>\n\nint main() {\n    std::cout << "Hello World" << std::endl;\n    return 0;\n}';
-  } else if (language.toLowerCase() === "c") {
-    return '#include <stdio.h>\n\nint main() {\n    printf("Hello World\\n");\n    return 0;\n}';
-  } else if (language.toLowerCase() === "go") {
-    return 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello World")\n}';
-  } else if (language.toLowerCase() === "bash") {
-    return 'echo "Hello World"';
-  } else {
-    return "Language not supported";
-  }
-}
 exports.signUp = async (req, res) => {
   try {
-    let { email, pwd, fullName } = req.body;
+    const { email, pwd, fullName } = req.body;
 
     if (!email || !pwd || !fullName) {
-      return res.status(400).json({
-        success: false,
-        msg: "All fields are required",
-      });
+      return res.status(400).json({ success: false, msg: "All fields are required" });
     }
 
-    let emailCon = await userModel.findOne({ email: email });
-    if (emailCon) {
-      return res.status(400).json({
-        success: false,
-        msg: "Email already exist",
-      });
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, msg: "Email already exists" });
     }
 
-    bcrypt.genSalt(12, function (err, salt) {
-      bcrypt.hash(pwd, salt, async function (err, hash) {
-        let user = await userModel.create({
-          email: email,
-          password: hash,
-          fullName: fullName,
-        });
+    const salt = await bcrypt.genSalt(12);
+    const hash = await bcrypt.hash(pwd, salt);
 
-        return res.status(200).json({
-          success: true,
-          msg: "User created successfully",
-        });
-      });
-    });
+    await userModel.create({ email, password: hash, fullName });
+
+    return res.status(200).json({ success: true, msg: "User created successfully" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
+    return res.status(500).json({ success: false, msg: error.message });
   }
 };
 
 exports.login = async (req, res) => {
   try {
-    let { email, pwd } = req.body;
+    const { email, pwd } = req.body;
 
     if (!email || !pwd) {
-      return res.status(400).json({
-        message: "All fields are required",
-        success: false,
-      });
+      return res.status(400).json({ message: "All fields are required", success: false });
     }
 
-    let user = await userModel.findOne({ email: email });
+    const user = await userModel.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-        success: false,
-      });
+      return res.status(404).json({ message: "User not found", success: false });
     }
 
-    bcrypt.compare(pwd, user.password, function (err, result) {
-      if (result) {
-        let token = jwt.sign({ userId: user._id }, secret);
+    const isMatch = await bcrypt.compare(pwd, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password", success: false });
+    }
 
-        return res.cookie("token", token, { httpOnly: true }).json({
-          message: `${user.fullName} logged in successfully`,
-          success: true,
-          user,
-        });
-      } else {
-        return res.status(401).json({
-          message: "Invalid password",
-          success: false,
-        });
-      }
+    const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "7d" });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    return res.json({
+      message: `${user.fullName} logged in successfully`,
+      success: true,
+      user,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-      success: false,
-    });
+    return res.status(500).json({ message: error.message, success: false });
   }
 };
 
 exports.getUser = async (req, res) => {
   try {
-    const userId = req.id;
-    const user = await userModel.findById(userId);
-    return res.status(201).json({
-      user,
-    });
+    const user = await userModel.findById(req.id);
+    if (!user) return res.status(404).json({ message: "User not found", success: false });
+
+    return res.status(200).json({ success: true, user });
   } catch (error) {
-    console.log(error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -147,223 +102,27 @@ exports.logOut = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.id;
-    const { fullName } = req.body || {};
-
+    const { fullName } = req.body;
     const profilePicture = req.file;
 
-    const user = await userModel.findByIdAndUpdate(userId, {
-      fullName
-    }, { new: true, runValidators: true });
+    const user = await userModel.findById(req.id);
+    if (!user) return res.status(404).json({ message: "User not found", success: false });
 
-    if(profilePicture){
-        const result = await imagekit.upload({
-            file: profilePicture.buffer,
-            fileName: profilePicture.originalname,
-        });
-        user.profilPhoto = result.url
+    if (fullName) user.fullName = fullName;
+
+    if (profilePicture) {
+      const uploadResult = await imagekit.upload({
+        file: profilePicture.buffer,
+        fileName: profilePicture.originalname,
+      });
+      user.profilPhoto = uploadResult.url;
     }
 
     await user.save();
 
-
-    return res.status(201).json({
-      message: "Profile updated successfully",
-      user,
-    });
+    return res.status(200).json({ success: true, message: "Profile updated successfully", user });
   } catch (error) {
-    console.log(error);
-  }
-};
-
-exports.createProj = async (req, res) => {
-  try {
-    let { name, projLanguage, token, version } = req.body;
-    let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        msg: "User not found",
-      });
-    }
-
-    let project = await projectModel.create({
-      name: name,
-      projLanguage: projLanguage,
-      createdBy: user._id,
-      code: getStartupCode(projLanguage),
-      version: version,
-    });
-
-    return res.status(200).json({
-      success: true,
-      msg: "Project created successfully",
-      projectId: project._id,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
-  }
-};
-
-exports.saveProject = async (req, res) => {
-  try {
-    let { token, projectId, code } = req.body;
-    console.log("DATA: ", token, projectId, code);
-    let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        msg: "User not found",
-      });
-    }
-
-    let project = await projectModel.findOneAndUpdate(
-      { _id: projectId },
-      { code: code }
-    );
-
-    return res.status(200).json({
-      success: true,
-      msg: "Project saved successfully",
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
-  }
-};
-
-exports.getProjects = async (req, res) => {
-  try {
-    let { token } = req.body;
-    let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        msg: "User not found",
-      });
-    }
-
-    let projects = await projectModel.find({ createdBy: user._id });
-
-    return res.status(200).json({
-      success: true,
-      msg: "Projects fetched successfully",
-      projects: projects,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
-  }
-};
-
-exports.getProject = async (req, res) => {
-  try {
-    let { token, projectId } = req.body;
-    let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        msg: "User not found",
-      });
-    }
-
-    let project = await projectModel.findOne({ _id: projectId });
-
-    if (project) {
-      return res.status(200).json({
-        success: true,
-        msg: "Project fetched successfully",
-        project: project,
-      });
-    } else {
-      return res.status(404).json({
-        success: false,
-        msg: "Project not found",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
-  }
-};
-
-exports.deleteProject = async (req, res) => {
-  try {
-    let { token, projectId } = req.body;
-    let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        msg: "User not found",
-      });
-    }
-
-    let project = await projectModel.findOneAndDelete({ _id: projectId });
-
-    return res.status(200).json({
-      success: true,
-      msg: "Project deleted successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
-  }
-};
-
-exports.editProject = async (req, res) => {
-  try {
-    let { token, projectId, name } = req.body;
-    let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        msg: "User not found",
-      });
-    }
-
-    let project = await projectModel.findOne({ _id: projectId });
-    if (project) {
-      project.name = name;
-      await project.save();
-      return res.status(200).json({
-        success: true,
-        msg: "Project edited successfully",
-      });
-    } else {
-      return res.status(404).json({
-        success: false,
-        msg: "Project not found",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      msg: error.message,
-    });
+    console.error("Update profile error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

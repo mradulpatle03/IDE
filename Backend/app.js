@@ -6,9 +6,11 @@ const logger = require('morgan');
 const cors = require("cors");
 require('dotenv').config();
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const userRouter = require('./routes/userRoute');
 const connectDB = require('./config/db');
+const sessionRouter = require("./routes/sessionRoute");
+const questionRoute = require("./routes/questionRoute");
+const projectRouter = require("./routes/projectRoute");
 
 connectDB();
 
@@ -22,8 +24,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors());
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', userRouter);
+app.use('/api/v1/projects', projectRouter);
+app.use("/api/v1/session", sessionRouter);
+app.use("/api/v1/question", questionRoute);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

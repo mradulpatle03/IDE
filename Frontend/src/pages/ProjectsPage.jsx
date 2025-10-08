@@ -79,7 +79,7 @@ const Home = () => {
   const [projects, setProjects] = useState(null);
 
   const getProjects = async () => {
-    fetch(api_base_url + "/getProjects", {
+    fetch(api_base_url + "/api/v1/projects/getProjects", {
       mode: "cors",
       method: "POST",
       headers: {
@@ -106,7 +106,7 @@ const Home = () => {
   }, []);
 
   const createProj = () => {
-    fetch(api_base_url + "/createProj", {
+    fetch(api_base_url + "/api/v1/projects/createProj", {
       mode: "cors",
       method: "POST",
       headers: {
@@ -133,7 +133,7 @@ const Home = () => {
   const deleteProject = (id) => {
     let conf = confirm("Are you sure you want to delete this project?");
     if (conf) {
-      fetch(api_base_url + "/deleteProject", {
+      fetch(api_base_url + "/api/v1/projects/deleteProject", {
         mode: "cors",
         method: "POST",
         headers: {
@@ -158,7 +158,7 @@ const Home = () => {
   const [editProjId, setEditProjId] = useState("");
 
   const updateProj = () => {
-    fetch(api_base_url + "/editProject", {
+    fetch(api_base_url + "/api/v1/projects/editProject", {
       mode: "cors",
       method: "POST",
       headers: {

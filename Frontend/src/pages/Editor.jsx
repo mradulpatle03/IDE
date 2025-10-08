@@ -15,7 +15,7 @@ const Editor = () => {
 
   // Fetch project data on mount
   useEffect(() => {
-    fetch(`${api_base_url}/getProject`, {
+    fetch(`${api_base_url}/api/v1/projects/getProject`, {
       mode: 'cors',
       method: 'POST',
       headers: {
@@ -46,7 +46,7 @@ const Editor = () => {
     const trimmedCode = code?.toString().trim(); // Ensure code is a string and trimmed
     console.log('Saving code:', trimmedCode); // Debug log
 
-    fetch(`${api_base_url}/saveProject`, {
+    fetch(`${api_base_url}/api/v1/projects/saveProject`, {
       mode: 'cors',
       method: 'POST',
       headers: {
