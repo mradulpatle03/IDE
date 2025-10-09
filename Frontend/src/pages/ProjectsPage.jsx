@@ -189,9 +189,6 @@ const Home = () => {
 
   return (
     <>
-      {/* Navbar */}
-      <Navbar className="bg-[#0d1117] border-b border-[#21262d] shadow-sm" />
-
       {/* Header */}
       <header className="flex items-center justify-between px-16 py-6 bg-[#0d1117]">
         <h1 className="text-3xl font-bold text-[#58a6ff] tracking-tight">

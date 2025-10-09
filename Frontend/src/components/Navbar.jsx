@@ -16,43 +16,48 @@ const Navbar = () => {
   };
 
   return (
-    <>
-      <div className="nav flex items-center justify-between h-[80px] px-[100px] bg-gradient-to-r from-[#0f0e0e] via-[#1a1a1a] to-[#0f0e0e] border-b border-[#2b2b2b] shadow-[0_0_20px_rgba(35,181,181,0.2)] backdrop-blur-md">
+    <div className="nav fixed top-0 left-0 w-full z-50 px-3 sm:px-6 lg:px-12 py-3 border-b border-[#3a1f47] backdrop-blur-lg bg-[#0a0014]/80 shadow-2xl shadow-[#b53dff]/30 transition-all duration-300">
+      <div className="flex items-center justify-between h-[56px] sm:h-[64px] lg:h-[72px] max-w-[1500px] mx-auto">
         {/* Logo Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <img
             src={logo}
-            className="w-[70px] h-[70px] object-cover rounded-full border-2 border-[#23b5b5] shadow-[0_0_10px_#23b5b5]"
-            alt="Logo"
+            className="w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] object-cover rounded-full border-2 border-[#ff3db5] shadow-lg shadow-[#ff3db5]/50 transition-all duration-500 hover:scale-[1.05] hover:rotate-2"
+            alt="DevTools Logo"
           />
-          <h1 className="text-white font-semibold text-xl tracking-wide">
-            DevTools
+          <h1 className="text-white font-black text-lg sm:text-xl lg:text-2xl tracking-wider select-none">
+            Dev
+            <span className="text-[#b53dff] transition-colors duration-300">
+              Tools
+            </span>
           </h1>
         </div>
 
-        {/* Links Section */}
-        {/* Links Section */}
-        <div className="flex items-center gap-4">
+        {/* Links Section - Tighter spacing for mobile */}
+        <div className="flex items-center gap-2">
           {isAuthenticate ? (
             <Profile />
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={LoginRoute}
-                className="relative px-5 py-2.5 rounded-xl text-white font-semibold transition-all duration-300 
-        bg-gradient-to-r from-[#0066ff] to-[#0044cc]
-        hover:from-[#0044cc] hover:to-[#002b80]
-        hover:shadow-[0_0_15px_rgba(0,102,255,0.5)]
-        active:scale-95"
+                className="relative px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm rounded-full text-white font-semibold transition-all duration-300 ease-in-out
+            bg-gradient-to-r from-[#b53dff] to-[#7f00ff]
+            hover:from-[#7f00ff] hover:to-[#5500aa]
+            shadow-md shadow-[#b53dff]/40
+            hover:shadow-lg hover:shadow-[#b53dff]/60
+            active:scale-90 whitespace-nowrap overflow-hidden group"
               >
+                {/* Adding a subtle glow effect on hover */}
+                <span className="absolute inset-0 bg-white opacity-0 transition-opacity duration-500 group-hover:opacity-10 mix-blend-overlay"></span>
                 Login
               </button>
 
               <button
                 onClick={RegisterRoute}
-                className="relative px-5 py-2.5 rounded-xl font-semibold text-[#0044cc] border border-[#0044cc] 
-        hover:bg-[#0044cc] hover:text-white transition-all duration-300
-        active:scale-95"
+                className="relative px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm rounded-full font-semibold text-[#ff3db5] border border-[#ff3db5] 
+            hover:bg-[#ff3db5] hover:text-white hover:border-[#ff3db5] transition-all duration-300 ease-in-out
+            active:scale-90 whitespace-nowrap"
               >
                 Register
               </button>
@@ -60,7 +65,7 @@ const Navbar = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

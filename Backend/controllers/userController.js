@@ -14,12 +14,16 @@ exports.signUp = async (req, res) => {
     const { email, pwd, fullName } = req.body;
 
     if (!email || !pwd || !fullName) {
-      return res.status(400).json({ success: false, msg: "All fields are required" });
+      return res
+        .status(400)
+        .json({ success: false, msg: "All fields are required" });
     }
 
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ success: false, msg: "Email already exists" });
+      return res
+        .status(400)
+        .json({ success: false, msg: "Email already exists" });
     }
 
     const salt = await bcrypt.genSalt(12);
@@ -27,7 +31,9 @@ exports.signUp = async (req, res) => {
 
     await userModel.create({ email, password: hash, fullName });
 
-    return res.status(200).json({ success: true, msg: "User created successfully" });
+    return res
+      .status(200)
+      .json({ success: true, msg: "User created successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, msg: error.message });
   }
@@ -38,25 +44,31 @@ exports.login = async (req, res) => {
     const { email, pwd } = req.body;
 
     if (!email || !pwd) {
-      return res.status(400).json({ message: "All fields are required", success: false });
+      return res
+        .status(400)
+        .json({ message: "All fields are required", success: false });
     }
 
     const user = await userModel.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "User not found", success: false });
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
     }
 
     const isMatch = await bcrypt.compare(pwd, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password", success: false });
+      return res
+        .status(401)
+        .json({ message: "Invalid password", success: false });
     }
 
     const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "7d" });
 
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "none",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.json({
@@ -65,6 +77,7 @@ exports.login = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.error("LOGIN ERROR:", error);
     return res.status(500).json({ message: error.message, success: false });
   }
 };
@@ -72,7 +85,10 @@ exports.login = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const user = await userModel.findById(req.id);
-    if (!user) return res.status(404).json({ message: "User not found", success: false });
+    if (!user)
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
 
     return res.status(200).json({ success: true, user });
   } catch (error) {
@@ -82,17 +98,18 @@ exports.getUser = async (req, res) => {
 
 exports.logOut = async (req, res) => {
   try {
-    return res
-      .clearCookie("token", {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-      })
-      .json({
-        message: "Logged out successfully",
-        success: true,
-      });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only secure in prod
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // lax for local dev
+    });
+
+    return res.json({
+      message: "Logged out successfully",
+      success: true,
+    });
   } catch (error) {
+    console.error("Logout error:", error);
     return res.status(500).json({
       message: error.message,
       success: false,
@@ -100,13 +117,17 @@ exports.logOut = async (req, res) => {
   }
 };
 
+
 exports.updateProfile = async (req, res) => {
   try {
     const { fullName } = req.body;
     const profilePicture = req.file;
 
     const user = await userModel.findById(req.id);
-    if (!user) return res.status(404).json({ message: "User not found", success: false });
+    if (!user)
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
 
     if (fullName) user.fullName = fullName;
 
@@ -120,7 +141,9 @@ exports.updateProfile = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ success: true, message: "Profile updated successfully", user });
+    return res
+      .status(200)
+      .json({ success: true, message: "Profile updated successfully", user });
   } catch (error) {
     console.error("Update profile error:", error);
     return res.status(500).json({ success: false, message: error.message });

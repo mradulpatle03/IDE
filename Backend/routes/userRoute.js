@@ -12,7 +12,7 @@ router.get('/', function(req, res, next) {
 router.post("/signUp", signUp);
 router.post("/login", login); 
 router.get("/getUser",AuthMiddleware, getUser);
-router.get("/logout",AuthMiddleware, logOut);
+router.post("/logout",AuthMiddleware, logOut);
 router.post("/updateProfile",AuthMiddleware,upload.single("profilPhoto"), updateProfile);
  
 
