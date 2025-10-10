@@ -28,9 +28,7 @@ const Login = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          // localStorage.setItem("token", data.token);
-          // localStorage.setItem("isLoggedIn", true);
-          dispatch(addUser());
+          dispatch(addUser(data.user));
           navigate("/");
         } else {
           toast.error(data.msg);

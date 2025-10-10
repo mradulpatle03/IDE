@@ -9,6 +9,7 @@ import { removeUser } from "../Store/user.Reducer";
 const Logout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  
 
   const logoutApi = async () => {
     const res = await axios.post(

@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { updateUser } from "../Store/user.Reducer";
 
 const UpdateProfile = () => {
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
   const handleFileChange = (e) => {
     setProfilePhoto(e.target.files[0]);
@@ -32,11 +35,20 @@ const UpdateProfile = () => {
 
     try {
       setLoading(true);
-      await axios.post(
-        "https://localhost:8000/api/v1/user/updateProfile",
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/updateProfile",
         formData,
         { withCredentials: true }
       );
+      const updatedFields = {};
+      if (fullName.trim()) updatedFields.fullName = fullName;
+      if (res.data.user?.profilPhoto)
+        updatedFields.profilPhoto = res.data.user.profilPhoto;
+
+      // Update Redux store with only the fields that changed
+      if (Object.keys(updatedFields).length > 0) {
+        dispatch(updateUser(updatedFields));
+      }
       toast.success("Profile updated successfully!");
       setOpen(false);
       setFullName("");
