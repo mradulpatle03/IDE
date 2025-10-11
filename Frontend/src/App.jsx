@@ -10,21 +10,30 @@ const App = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    
-    const fetchUser = async () => {
+    async function checkAuth() {
       try {
-        const res = await axios.get(
-          "http://localhost:8000/api/v1/user/getUser",
-          { withCredentials: true }
-        );
-        dispatch(addUser(res.data.user)); // set global Redux state
-      } catch (err) {
-        console.log("No valid session, keeping persisted state intact");
-        // clear state if no user/cookie
-      }
-    };
+        const res = await fetch(`http://localhost:8000/api/v1/auth/checkToken`, {
+          method: "GET",
+          credentials: "include",
+        });
 
-    fetchUser();
+        if (res.ok) {
+          const data = await res.json();
+          dispatch(addUser({user: data.user}));
+        } else {
+          dispatch(removeUser());
+          localStorage.removeItem("persist:root");
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        dispatch(removeUser());
+        localStorage.removeItem("persist:root");
+      } finally {
+        // setAuthChecked(true);
+      }
+    }
+
+    checkAuth();
   }, [dispatch]);
   // Hide navbar on specific routes
   const hiddenRoutes = ["/register", "/login"];

@@ -45,17 +45,8 @@ const Popover = ({ trigger, children }) => {
 // --- Profile Component ---
 const Profile = () => {
   // Get user from Redux store
-  const user = useSelector((state) => state?.userReducer?.user);
-
-  // Render loading state if user is not yet loaded
-  if (!user) {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="h-10 w-10 rounded-full bg-zinc-700 animate-pulse"></div>
-        <div className="h-4 w-20 bg-zinc-700 rounded animate-pulse hidden sm:block"></div>
-      </div>
-    );
-  }
+  const user = useSelector((state) => state.userReducer.user);
+  console.log(user);
 
   return (
     <Popover
@@ -65,6 +56,7 @@ const Profile = () => {
              rounded-full border border-transparent hover:border-teal-400/50 
              bg-zinc-800/50 hover:bg-zinc-700/70 transition-all duration-300"
         >
+          
           {user?.profilPhoto ? (
             <img
               src={user.profilPhoto}
@@ -83,6 +75,7 @@ const Profile = () => {
         </div>
       }
     >
+      
       <div className="capitalize flex flex-col gap-2">
         {/* User Info */}
         <div className="p-2 border-b border-white/10 mb-2">

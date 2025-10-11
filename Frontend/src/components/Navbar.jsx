@@ -16,7 +16,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="nav fixed top-0 left-0 w-full z-50 px-3 sm:px-6 lg:px-12 py-3 border-b border-[#3a1f47] backdrop-blur-lg bg-[#0a0014]/80 shadow-2xl shadow-[#b53dff]/30 transition-all duration-300">
+    <div className="nav top-0 left-0 w-full z-50 px-3 sm:px-6 lg:px-12 py-3 border-b border-[#3a1f47] backdrop-blur-lg bg-[#0a0014]/80 shadow-2xl shadow-[#b53dff]/30 transition-all duration-300">
       <div className="flex items-center justify-between h-[56px] sm:h-[64px] lg:h-[72px] max-w-[1500px] mx-auto">
         {/* Logo Section */}
         <div className="flex items-center gap-2 sm:gap-3">

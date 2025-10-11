@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const AuthMiddleware = async (req, res, next) => {
     try {
         const token = req.cookies.token;
-        console.log(token);
+        
         if (!token) {
             return res.status(401).json({
                 message: "User not found",
@@ -19,7 +19,7 @@ const AuthMiddleware = async (req, res, next) => {
                 success: false
             });
         }
-
+        
         req.id = decode.userId;
 
         next();

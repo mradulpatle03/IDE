@@ -1,5 +1,4 @@
-import React, { useEffect, useState, version } from "react";
-import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import { api_base_url } from "../helper";
 import { useNavigate } from "react-router-dom";
@@ -79,25 +78,28 @@ const Home = () => {
   const [projects, setProjects] = useState(null);
 
   const getProjects = async () => {
-    fetch(api_base_url + "/api/v1/projects/getProjects", {
-      mode: "cors",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem("token"),
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        if (data.success) {
-          setProjects(data.projects);
-        } else {
-          toast.error(data.msg);
-        }
+    try {
+      console.log(req)
+      const res = await fetch(`${api_base_url}/api/v1/projects/getProjects`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+
+      const data = await res.json();
+      console.log(data);
+
+      if (data.success) {
+        setProjects(data.projects);
+      } else {
+        toast.error(data.msg || "Failed to fetch projects");
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      toast.error("Something went wrong while fetching projects");
+    }
   };
 
   useEffect(() => {
@@ -105,90 +107,100 @@ const Home = () => {
     getRunTimes();
   }, []);
 
-  const createProj = () => {
-    fetch(api_base_url + "/api/v1/projects/createProj", {
-      mode: "cors",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: name,
-        projLanguage: selectedLanguage.value,
-        token: localStorage.getItem("token"),
-        version: selectedLanguage.version,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setName("");
-          navigate("/editor/" + data.projectId);
-        } else {
-          toast.error(data.msg);
-        }
-      });
-  };
-
-  const deleteProject = (id) => {
-    let conf = confirm("Are you sure you want to delete this project?");
-    if (conf) {
-      fetch(api_base_url + "/api/v1/projects/deleteProject", {
-        mode: "cors",
+  const createProj = async () => {
+    try {
+      const res = await fetch(`${api_base_url}/api/v1/projects/createProj`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          projectId: id,
-          token: localStorage.getItem("token"),
+          name: name,
+          projLanguage: selectedLanguage.value,
+          version: selectedLanguage.version,
         }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            getProjects();
-          } else {
-            toast.error(data.msg);
-          }
-        });
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setName("");
+        navigate(`/editor/${data.projectId}`);
+      } else {
+        toast.error(data.msg || "Failed to create project");
+      }
+    } catch (error) {
+      console.error("Error creating project:", error);
+      toast.error("Something went wrong while creating the project");
+    }
+  };
+
+  const deleteProject = async (id) => {
+    const conf = confirm("Are you sure you want to delete this project?");
+    if (!conf) return;
+
+    try {
+      const res = await fetch(`${api_base_url}/api/v1/projects/deleteProject`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ projectId: id }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Project deleted successfully");
+        getProjects();
+      } else {
+        toast.error(data.msg || "Failed to delete project");
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast.error("Something went wrong while deleting the project");
     }
   };
 
   const [editProjId, setEditProjId] = useState("");
 
-  const updateProj = () => {
-    fetch(api_base_url + "/api/v1/projects/editProject", {
-      mode: "cors",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        projectId: editProjId,
-        token: localStorage.getItem("token"),
-        name: name,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setIsEditModelShow(false);
-          setName("");
-          setEditProjId("");
-          getProjects();
-        } else {
-          toast.error(data.msg);
-          setIsEditModelShow(false);
-          setName("");
-          setEditProjId("");
-          getProjects();
-        }
+  const updateProj = async () => {
+    try {
+      const res = await fetch(`${api_base_url}/api/v1/projects/editProject`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: editProjId,
+          name: name,
+        }),
       });
+
+      const data = await res.json();
+
+      setIsEditModelShow(false);
+      setName("");
+      setEditProjId("");
+
+      if (data.success) {
+        toast.success("Project updated successfully");
+        getProjects();
+      } else {
+        toast.error(data.msg || "Failed to update project");
+        getProjects();
+      }
+    } catch (error) {
+      console.error("Error updating project:", error);
+      toast.error("Something went wrong while updating the project");
+    }
   };
 
   return (
-    <>
+    <div>
       {/* Header */}
       <header className="flex items-center justify-between px-16 py-6 bg-[#0d1117]">
         <h1 className="text-3xl font-bold text-[#58a6ff] tracking-tight">
@@ -341,7 +353,7 @@ const Home = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

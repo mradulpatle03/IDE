@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Editor2 from '@monaco-editor/react';
-import { useParams } from 'react-router-dom';
-import { api_base_url } from '../helper';
-import { toast } from 'react-toastify';
+import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import Editor2 from "@monaco-editor/react";
+import { useParams } from "react-router-dom";
+import { api_base_url } from "../helper";
+import { toast } from "react-toastify";
 
 const Editor = () => {
-  const [code, setCode] = useState(""); // State to hold the code
-  const { id } = useParams(); // Extract project ID from URL params
+  const [code, setCode] = useState("");
+  const { id } = useParams();
   const [output, setOutput] = useState("");
   const [error, setError] = useState(false);
 
@@ -15,66 +15,68 @@ const Editor = () => {
 
   // Fetch project data on mount
   useEffect(() => {
-    fetch(`${api_base_url}/api/v1/projects/getProject`, {
-      mode: 'cors',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem('token'),
-        projectId: id,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchProject = async () => {
+      try {
+        const res = await fetch(`${api_base_url}/api/v1/projects/getProject`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ projectId: id }),
+        });
+
+        const data = await res.json();
+
         if (data.success) {
-          setCode(data.project.code); // Set the fetched code
+          setCode(data.project.code);
           setData(data.project);
         } else {
-          toast.error(data.msg);
+          toast.error(data.msg || "Failed to fetch project");
         }
-      })
-      .catch((err) => {
-        console.error('Error fetching project:', err);
-        toast.error('Failed to load project.');
-      });
+      } catch (err) {
+        console.error("Error fetching project:", err);
+        toast.error("Failed to load project.");
+      }
+    };
+
+    if (id) fetchProject();
   }, [id]);
 
   // Save project function
-  const saveProject = () => {
-    const trimmedCode = code?.toString().trim(); // Ensure code is a string and trimmed
-    console.log('Saving code:', trimmedCode); // Debug log
+  const saveProject = async () => {
+    const trimmedCode = code?.toString().trim();
+    console.log("Saving code:", trimmedCode);
 
-    fetch(`${api_base_url}/api/v1/projects/saveProject`, {
-      mode: 'cors',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem('token'),
-        projectId: id,
-        code: trimmedCode, // Use the latest code state
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          toast.success(data.msg);
-        } else {
-          toast.error(data.msg);
-        }
-      })
-      .catch((err) => {
-        console.error('Error saving project:', err);
-        toast.error('Failed to save the project.');
+    try {
+      const res = await fetch(`${api_base_url}/api/v1/projects/saveProject`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: id,
+          code: trimmedCode,
+        }),
       });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success(data.msg || "Project saved successfully");
+      } else {
+        toast.error(data.msg || "Failed to save project");
+      }
+    } catch (err) {
+      console.error("Error saving project:", err);
+      toast.error("Something went wrong while saving the project");
+    }
   };
 
   // Shortcut handler for saving with Ctrl+S
   const handleSaveShortcut = (e) => {
-    if (e.ctrlKey && e.key === 's') {
+    if (e.ctrlKey && e.key === "s") {
       e.preventDefault(); // Prevent browser's default save behavior
       saveProject(); // Call the save function
     }
@@ -82,9 +84,9 @@ const Editor = () => {
 
   // Add and clean up keyboard event listener
   useEffect(() => {
-    window.addEventListener('keydown', handleSaveShortcut);
+    window.addEventListener("keydown", handleSaveShortcut);
     return () => {
-      window.removeEventListener('keydown', handleSaveShortcut);
+      window.removeEventListener("keydown", handleSaveShortcut);
     };
   }, [code]); // Reattach when `code` changes
 
@@ -92,34 +94,51 @@ const Editor = () => {
     fetch("https://emkc.org/api/v2/piston/execute", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         language: data.projLanguage,
         version: data.version,
         files: [
           {
-            filename: data.name + data.projLanguage === "python" ? ".py" : data.projLanguage === "java" ? ".java" : data.projLanguage === "javascript" ? ".js" : data.projLanguage === "c" ? ".c" : data.projLanguage === "cpp" ? ".cpp" : data.projLanguage === "bash" ? ".sh" : "",
-            content: code
-          }
-        ]
-      })
-    }).then(res => res.json()).then(data => {
-      console.log(data)
-      setOutput(data.run.output);
-      setError(data.run.code === 1 ? true : false);
+            filename:
+              data.name + data.projLanguage === "python"
+                ? ".py"
+                : data.projLanguage === "java"
+                ? ".java"
+                : data.projLanguage === "javascript"
+                ? ".js"
+                : data.projLanguage === "c"
+                ? ".c"
+                : data.projLanguage === "cpp"
+                ? ".cpp"
+                : data.projLanguage === "bash"
+                ? ".sh"
+                : "",
+            content: code,
+          },
+        ],
+      }),
     })
-  }
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setOutput(data.run.output);
+        setError(data.run.code === 1 ? true : false);
+      });
+  };
 
   return (
     <>
-      <Navbar />
-      <div className="flex items-center justify-between" style={{ height: 'calc(100vh - 90px)' }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ height: "calc(100vh - 90px)" }}
+      >
         <div className="left w-[50%] h-full">
           <Editor2
             onChange={(newCode) => {
-              console.log('New Code:', newCode); // Debug: Log changes
-              setCode(newCode || ''); // Update state
+              console.log("New Code:", newCode); // Debug: Log changes
+              setCode(newCode || ""); // Update state
             }}
             theme="vs-dark"
             height="100%"
@@ -137,9 +156,13 @@ const Editor = () => {
             >
               run
             </button>
-
           </div>
-            <pre className={`w-full h-[75vh] ${error ? "text-red-500" : ""}`} style={{textWrap: "nowrap"}}>{output}</pre>
+          <pre
+            className={`w-full h-[75vh] ${error ? "text-red-500" : ""}`}
+            style={{ textWrap: "nowrap" }}
+          >
+            {output}
+          </pre>
         </div>
       </div>
     </>

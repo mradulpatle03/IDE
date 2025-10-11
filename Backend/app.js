@@ -6,6 +6,7 @@ const logger = require('morgan');
 const cors = require("cors");
 require('dotenv').config();
 
+const authRouter = require('./routes/authRoute');
 const userRouter = require('./routes/userRoute');
 const connectDB = require('./config/db');
 const sessionRouter = require("./routes/sessionRoute");
@@ -28,6 +29,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/projects', projectRouter);
 app.use("/api/v1/session", sessionRouter);
