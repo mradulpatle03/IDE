@@ -202,7 +202,7 @@ const Home = () => {
   return (
     <div>
       {/* Header */}
-      <header className="flex items-center justify-between px-16 py-6 bg-[#0d1117]">
+      <header className="flex items-center justify-between px-16 py-6 bg-[#0d1117] mt-[64px] sm:mt-[72px] lg:mt-[80px]">
         <h1 className="text-3xl font-bold text-[#58a6ff] tracking-tight">
           Dev Dashboard
         </h1>

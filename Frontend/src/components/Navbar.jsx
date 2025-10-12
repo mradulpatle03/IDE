@@ -24,14 +24,14 @@ const Navbar = () => {
           <img
             src={logo}
             className="w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] object-cover rounded-full border-2 border-[#ff3db5] shadow-lg shadow-[#ff3db5]/50 transition-all duration-500 hover:scale-[1.05] hover:rotate-2"
-            alt="DevTools Logo"
+            alt="Ai Interview Prep Logo"
           />{" "}
           <h1 className="text-white font-black text-lg sm:text-xl lg:text-2xl tracking-wider select-none">
             {" "}
-            Dev{" "}
+            Prep
             <span className="text-[#b53dff] transition-colors duration-300">
-              {" "}
-              Tools{" "}
+              
+              Pilot{" "}
             </span>{" "}
           </h1>{" "}
         </div>

@@ -9,6 +9,7 @@ import Login from "../pages/Login";
 import Editor from "../pages/Editor";
 import ProjectsPage from "../pages/ProjectsPage";
 import Session from "../pages/Session";
+import SessionDetails from "../pages/SessionDetails";
 
 const MainRoutes = () => {
 
@@ -26,6 +27,12 @@ const MainRoutes = () => {
         path="/session"
         element={<ProtecRoutes>
             <Session />
+          </ProtecRoutes>}
+      />
+      <Route 
+        path="/session/:id"
+        element={<ProtecRoutes>
+            <SessionDetails />
           </ProtecRoutes>}
       />
       <Route path="/signup" element={<SignUp />} />
