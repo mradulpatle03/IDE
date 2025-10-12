@@ -79,7 +79,7 @@ const Home = () => {
 
   const getProjects = async () => {
     try {
-      console.log(req)
+      
       const res = await fetch(`${api_base_url}/api/v1/projects/getProjects`, {
         method: "POST",
         credentials: "include",

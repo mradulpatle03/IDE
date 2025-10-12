@@ -56,7 +56,6 @@ const Profile = () => {
              rounded-full border border-transparent hover:border-teal-400/50 
              bg-zinc-800/50 hover:bg-zinc-700/70 transition-all duration-300"
         >
-          
           {user?.profilPhoto ? (
             <img
               src={user.profilPhoto}
@@ -75,7 +74,6 @@ const Profile = () => {
         </div>
       }
     >
-      
       <div className="capitalize flex flex-col gap-2">
         {/* User Info */}
         <div className="p-2 border-b border-white/10 mb-2">
