@@ -12,6 +12,7 @@ const connectDB = require('./config/db');
 const sessionRouter = require("./routes/sessionRoute");
 const questionRoute = require("./routes/questionRoute");
 const projectRouter = require("./routes/projectRoute");
+const leetcodeRouter = require("./routes/dsaRoutes");
 
 connectDB();
 
@@ -34,6 +35,7 @@ app.use('/api/v1/user', userRouter);
 app.use('/api/v1/projects', projectRouter);
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/question", questionRoute);
+app.use('/api/v1/dsa',leetcodeRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

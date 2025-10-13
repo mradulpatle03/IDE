@@ -10,6 +10,7 @@ import Editor from "../pages/Editor";
 import ProjectsPage from "../pages/ProjectsPage";
 import Session from "../pages/Session";
 import SessionDetails from "../pages/SessionDetails";
+import DsaPrep from "../pages/DsaPage";
 
 const MainRoutes = () => {
 
@@ -33,6 +34,12 @@ const MainRoutes = () => {
         path="/session/:id"
         element={<ProtecRoutes>
             <SessionDetails />
+          </ProtecRoutes>}
+      />
+      <Route 
+        path="/dsa-prep"
+        element={<ProtecRoutes>
+            <DsaPrep />
           </ProtecRoutes>}
       />
       <Route path="/signup" element={<SignUp />} />
