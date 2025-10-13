@@ -1,171 +1,357 @@
-import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
+// src/pages/Editor.jsx
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Editor2 from "@monaco-editor/react";
-import { useParams } from "react-router-dom";
 import { api_base_url } from "../helper";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { motion } from "framer-motion";
+import { Loader2, Play, Save, Trash2 } from "lucide-react";
 
 const Editor = () => {
-  const [code, setCode] = useState("");
   const { id } = useParams();
+  const [data, setData] = useState(null); // project metadata from backend
+  const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
-  const [error, setError] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [runError, setRunError] = useState(false);
+  const [stdin, setStdin] = useState("");
+  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+  const autoSaveTimer = useRef(null);
+  const isMounted = useRef(true);
 
-  const [data, setData] = useState(null);
-
-  // Fetch project data on mount
+  // Load project
   useEffect(() => {
+    isMounted.current = true;
     const fetchProject = async () => {
       try {
         const res = await fetch(`${api_base_url}/api/v1/projects/getProject`, {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ projectId: id }),
         });
-
-        const data = await res.json();
-
-        if (data.success) {
-          setCode(data.project.code);
-          setData(data.project);
+        const resJson = await res.json();
+        if (resJson.success) {
+          setData(resJson.project);
+          setCode(resJson.project.code || "");
         } else {
-          toast.error(data.msg || "Failed to fetch project");
+          toast.error(resJson.msg || "Failed to fetch project");
         }
       } catch (err) {
-        console.error("Error fetching project:", err);
+        console.error("fetchProject error:", err);
         toast.error("Failed to load project.");
       }
     };
 
     if (id) fetchProject();
+    return () => {
+      isMounted.current = false;
+      clearTimeout(autoSaveTimer.current);
+    };
   }, [id]);
 
-  // Save project function
-  const saveProject = async () => {
-    const trimmedCode = code?.toString().trim();
-    console.log("Saving code:", trimmedCode);
+  // Map project language to Monaco language & file extension
+  const languageToMonaco = (lang) => {
+    if (!lang) return "plaintext";
+    switch (lang) {
+      case "cpp":
+      case "c++":
+        return "cpp";
+      case "c":
+        return "c";
+      case "javascript":
+        return "javascript";
+      case "java":
+        return "java";
+      case "python":
+        return "python";
+      case "bash":
+        return "shell";
+      default:
+        return lang;
+    }
+  };
 
-    try {
-      const res = await fetch(`${api_base_url}/api/v1/projects/saveProject`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
+  const extForLanguage = (lang) => {
+    switch (lang) {
+      case "python":
+        return ".py";
+      case "javascript":
+        return ".js";
+      case "java":
+        return ".java";
+      case "cpp":
+      case "c++":
+        return ".cpp";
+      case "c":
+        return ".c";
+      case "bash":
+        return ".sh";
+      default:
+        return "";
+    }
+  };
+
+  // Save project to backend
+  const saveProject = useCallback(
+    async (showToast = true) => {
+      if (!id) return;
+      setSaveStatus("saving");
+      try {
+        const trimmedCode = (code || "").toString();
+        const res = await fetch(`${api_base_url}/api/v1/projects/saveProject`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: id, code: trimmedCode }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setSaveStatus("saved");
+          if (showToast) toast.success(data.msg || "Project saved");
+          // reset saved indicator after a short delay
+          setTimeout(() => {
+            if (isMounted.current) setSaveStatus("idle");
+          }, 1200);
+        } else {
+          setSaveStatus("error");
+          toast.error(data.msg || "Failed to save project");
+        }
+      } catch (err) {
+        console.error("saveProject error:", err);
+        setSaveStatus("error");
+        toast.error("Something went wrong while saving the project");
+      }
+    },
+    [code, id]
+  );
+
+  // Auto-save (debounced)
+  useEffect(() => {
+    // don't auto-save before project is loaded
+    if (!data) return;
+    clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      saveProject(false); // auto-save silently (no toast)
+    }, 1500); // 1.5s debounce
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [code, data, saveProject]);
+
+  // Keyboard shortcuts: Ctrl+S save, Ctrl+Enter run
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        saveProject(true);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runProject();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [saveProject, code, data, stdin]);
+
+  // Run project using Piston
+  const runProject = async () => {
+    if (!data) {
+      toast.error("Project data not loaded yet.");
+      return;
+    }
+
+    setIsRunning(true);
+    setRunError(false);
+    setOutput(""); // clear previous
+
+    // Determine extension and filename correctly
+    const ext = extForLanguage(data.projLanguage);
+    const filename = `${(data.name || "main")}${ext}`;
+
+    const body = {
+      language: data.projLanguage === "cpp" ? "cpp" : data.projLanguage,
+      version: data.version || "*",
+      files: [
+        {
+          name: filename,
+          content: code || "",
         },
-        body: JSON.stringify({
-          projectId: id,
-          code: trimmedCode,
-        }),
+      ],
+      stdin: stdin || "",
+      args: [],
+      compile_timeout: 10000,
+      run_timeout: 10000,
+      // request more detailed output if available — Piston returns run info
+    };
+
+    const start = Date.now();
+    try {
+      const res = await fetch("https://emkc.org/api/v2/piston/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
 
-      const data = await res.json();
+      const resJson = await res.json();
+      const tookMs = Date.now() - start;
 
-      if (data.success) {
-        toast.success(data.msg || "Project saved successfully");
+      // Basic safety: Piston may return either "run" or top-level error
+      if (resJson && resJson.run) {
+        const runData = resJson.run;
+        const combinedOutput = [
+          runData.stdout || "",
+          runData.stderr ? `\n[stderr]\n${runData.stderr}` : "",
+          `\n\n[exit code] ${runData.code}`,
+          `\n[time] ${tookMs}ms`,
+        ].join("");
+
+        setOutput(combinedOutput);
+        setRunError(runData.code !== 0);
+      } else if (resJson.message) {
+        setOutput(resJson.message);
+        setRunError(true);
       } else {
-        toast.error(data.msg || "Failed to save project");
+        setOutput(JSON.stringify(resJson, null, 2));
+        setRunError(true);
       }
     } catch (err) {
-      console.error("Error saving project:", err);
-      toast.error("Something went wrong while saving the project");
+      console.error("runProject error:", err);
+      setOutput("Failed to run project. Check network or runtime settings.");
+      setRunError(true);
+    } finally {
+      setIsRunning(false);
     }
   };
 
-  // Shortcut handler for saving with Ctrl+S
-  const handleSaveShortcut = (e) => {
-    if (e.ctrlKey && e.key === "s") {
-      e.preventDefault(); // Prevent browser's default save behavior
-      saveProject(); // Call the save function
-    }
+  const clearOutput = () => {
+    setOutput("");
+    setRunError(false);
   };
 
-  // Add and clean up keyboard event listener
-  useEffect(() => {
-    window.addEventListener("keydown", handleSaveShortcut);
-    return () => {
-      window.removeEventListener("keydown", handleSaveShortcut);
-    };
-  }, [code]); // Reattach when `code` changes
-
-  const runProject = () => {
-    fetch("https://emkc.org/api/v2/piston/execute", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        language: data.projLanguage,
-        version: data.version,
-        files: [
-          {
-            filename:
-              data.name + data.projLanguage === "python"
-                ? ".py"
-                : data.projLanguage === "java"
-                ? ".java"
-                : data.projLanguage === "javascript"
-                ? ".js"
-                : data.projLanguage === "c"
-                ? ".c"
-                : data.projLanguage === "cpp"
-                ? ".cpp"
-                : data.projLanguage === "bash"
-                ? ".sh"
-                : "",
-            content: code,
-          },
-        ],
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setOutput(data.run.output);
-        setError(data.run.code === 1 ? true : false);
-      });
+  // Editor change
+  const onEditorChange = (newValue) => {
+    setCode(newValue || "");
   };
 
   return (
-    <>
-      <div
-        className="flex items-center justify-between"
-        style={{ height: "calc(100vh - 90px)" }}
-      >
-        <div className="left w-[50%] h-full">
+    <div className="min-h-screen pt-[72px] bg-[#0d1117]">
+      <div className="flex h-[calc(100vh-72px)] gap-4 px-6">
+        {/* Left: Editor */}
+        <div className="w-1/2 h-full rounded-lg overflow-hidden border border-[#23262a] bg-[#0b0b0c]">
+          <div className="flex items-center justify-between px-4 py-2 bg-[#0b0b0c] border-b border-[#17181a]">
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-300">
+                {data ? data.name : "Loading..."}
+              </div>
+              <div className="text-xs text-gray-400 px-2 py-0.5 bg-[#111214] rounded">
+                {data ? (data.projLanguage || "plain").toUpperCase() : "—"}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-xs text-gray-400">
+                {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved ✓" : ""}
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => saveProject(true)}
+                className="flex items-center gap-2 px-3 py-1 rounded bg-[#212327] hover:bg-[#2a2d31]"
+              >
+                <Save size={14} /> Save
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={runProject}
+                className="flex items-center gap-2 px-3 py-1 rounded bg-[#238636] hover:bg-[#2ea043]"
+              >
+                {isRunning ? <Loader2 className="animate-spin" size={14} /> : <Play size={14} />} Run
+              </motion.button>
+            </div>
+          </div>
+
           <Editor2
-            onChange={(newCode) => {
-              console.log("New Code:", newCode); // Debug: Log changes
-              setCode(newCode || ""); // Update state
-            }}
+            height="calc(100% - 40px)"
+            defaultLanguage={languageToMonaco(data?.projLanguage)}
+            language={languageToMonaco(data?.projLanguage)}
             theme="vs-dark"
-            height="100%"
-            width="100%"
-            language="python"
-            value={code} // Bind editor to state
+            value={code}
+            onChange={onEditorChange}
+            options={{
+              minimap: { enabled: false },
+              wordWrap: "off",
+              fontSize: 14,
+            }}
           />
         </div>
-        <div className="right p-[15px] w-[50%] h-full bg-[#27272a]">
-          <div className="flex pb-3 border-b-[1px] border-b-[#1e1e1f] items-center justify-between px-[30px]">
-            <p className="p-0 m-0">Output</p>
-            <button
-              className="btnNormal !w-fit !px-[20px] bg-blue-500 transition-all hover:bg-blue-600"
-              onClick={runProject} // Save when clicking the button
-            >
-              run
-            </button>
+
+        {/* Right: Console + Controls */}
+        <div className="w-1/2 h-full flex flex-col gap-4">
+          <div className="rounded-lg border border-[#23262a] bg-[#0b0b0c] flex-1 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-[#17181a]">
+              <div className="flex items-center gap-3">
+                <div className="text-sm font-medium text-gray-200">Console</div>
+                <div className="text-xs text-gray-400">
+                  {isRunning ? "Running..." : runError ? "Error" : "Ready"}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={clearOutput}
+                  className="px-2 py-1 rounded bg-[#212327] hover:bg-[#2a2d31] flex items-center gap-2 text-sm"
+                >
+                  <Trash2 size={14} /> Clear
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 h-[55%] overflow-auto text-sm">
+              <pre className={`whitespace-pre-wrap ${runError ? "text-red-400" : "text-gray-200"}`}>
+                {output || (isRunning ? "Running... please wait" : "No output yet.")}
+              </pre>
+            </div>
+
+            <div className="p-4 border-t border-[#17181a]">
+              <label className="block text-xs text-gray-300 mb-1">stdin (optional)</label>
+              <textarea
+                value={stdin}
+                onChange={(e) => setStdin(e.target.value)}
+                className="w-full min-h-[64px] max-h-[160px] bg-[#0d0d0e] border border-[#1a1b1c] rounded p-2 text-sm outline-none"
+                placeholder="Provide input for programs that read from stdin..."
+              />
+              <div className="flex justify-end mt-3 gap-2">
+                <button
+                  onClick={() => {
+                    setStdin("");
+                    toast.info("stdin cleared");
+                  }}
+                  className="px-3 py-1 rounded bg-[#212327] hover:bg-[#2a2d31] text-sm"
+                >
+                  Clear stdin
+                </button>
+                <button
+                  onClick={runProject}
+                  className="px-3 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-sm flex items-center gap-2"
+                >
+                  {isRunning ? <Loader2 className="animate-spin" size={14} /> : <Play size={14} />} Run
+                </button>
+              </div>
+            </div>
           </div>
-          <pre
-            className={`w-full h-[75vh] ${error ? "text-red-500" : ""}`}
-            style={{ textWrap: "nowrap" }}
-          >
-            {output}
-          </pre>
+
+          {/* Footer: Helpful tips */}
+          <div className="text-xs text-gray-400 p-2">
+            <div className="flex justify-between">
+              <div>
+                Shortcuts: <span className="text-gray-200">Ctrl/Cmd + S</span> to save •{" "}
+                <span className="text-gray-200">Ctrl/Cmd + Enter</span> to run
+              </div>
+              <div>Runtime: <span className="text-gray-200">{data?.projLanguage || "—"}</span></div>
+            </div>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
