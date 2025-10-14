@@ -11,6 +11,7 @@ import ProjectsPage from "../pages/ProjectsPage";
 import Session from "../pages/Session";
 import SessionDetails from "../pages/SessionDetails";
 import DsaPrep from "../pages/DsaPage";
+import RoadmapPage from "../pages/RoadmapPage";
 
 const MainRoutes = () => {
 
@@ -40,6 +41,12 @@ const MainRoutes = () => {
         path="/dsa-prep"
         element={<ProtecRoutes>
             <DsaPrep />
+          </ProtecRoutes>}
+      />
+      <Route 
+        path="/roadmap"
+        element={<ProtecRoutes>
+            <RoadmapPage />
           </ProtecRoutes>}
       />
       <Route path="/signup" element={<SignUp />} />
