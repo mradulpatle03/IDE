@@ -12,6 +12,7 @@ import Session from "../pages/Session";
 import SessionDetails from "../pages/SessionDetails";
 import DsaPrep from "../pages/DsaPage";
 import RoadmapPage from "../pages/RoadmapPage";
+import Chatbot from "../pages/Chatbot";
 
 const MainRoutes = () => {
 
@@ -55,6 +56,12 @@ const MainRoutes = () => {
         path="/editor/:id"
         element={<ProtecRoutes>
             <Editor />
+          </ProtecRoutes>}
+      />
+      <Route
+        path="/chat"
+        element={<ProtecRoutes>
+            <Chatbot />
           </ProtecRoutes>}
       />
       <Route path="*" element={<NoPage />} />

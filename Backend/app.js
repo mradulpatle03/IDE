@@ -14,6 +14,7 @@ const questionRoute = require("./routes/questionRoute");
 const projectRouter = require("./routes/projectRoute");
 const leetcodeRouter = require("./routes/dsaRoutes");
 const roadMapRouter = require("./routes/roadmapRoutes");
+const chatRouter = require('./routes/chatbotRoute')
 
 connectDB();
 
@@ -38,6 +39,7 @@ app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/question", questionRoute);
 app.use('/api/v1/dsa',leetcodeRouter);
 app.use('/api/v1/roadmap',roadMapRouter);
+app.use('/api/v1/chat',chatRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
