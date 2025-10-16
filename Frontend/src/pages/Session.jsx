@@ -14,7 +14,7 @@ const Session = () => {
   // ---- Fetch Sessions ----
   const getSession = async () => {
     const res = await axios.get(
-      "http://localhost:8000/api/v1/session/getMySession",
+      `${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/session/getMySession",
       {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
