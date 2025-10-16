@@ -24,7 +24,7 @@ const Editor = () => {
     isMounted.current = true;
     const fetchProject = async () => {
       try {
-        const res = await fetch(`${api_base_url}/api/v1/projects/getProject`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/projects/getProject`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -99,7 +99,7 @@ const Editor = () => {
       setSaveStatus("saving");
       try {
         const trimmedCode = (code || "").toString();
-        const res = await fetch(`${api_base_url}/api/v1/projects/saveProject`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/projects/saveProject`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

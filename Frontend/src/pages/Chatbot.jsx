@@ -3,7 +3,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { Send, Bot, User, Sparkles } from "lucide-react";
 
-const API_BASE = "http://localhost:8000/api/v1/chat/gen";
+const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/chat/gen";
 
 export default function Chatbot() {
   const [messages, setMessages] = useState([

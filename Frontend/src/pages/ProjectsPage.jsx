@@ -62,7 +62,7 @@ const ProjectsPage = () => {
   const getProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${api_base_url}/api/v1/projects/getProjects`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/projects/getProjects`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -87,7 +87,7 @@ const ProjectsPage = () => {
     if (!selectedLanguage) return toast.error("Select a language");
 
     try {
-      const res = await fetch(`${api_base_url}/api/v1/projects/createProj`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/projects/createProj`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -113,7 +113,7 @@ const ProjectsPage = () => {
     if (!name.trim()) return toast.error("Project name cannot be empty");
 
     try {
-      const res = await fetch(`${api_base_url}/api/v1/projects/editProject`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/projects/editProject`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -132,7 +132,7 @@ const ProjectsPage = () => {
   const deleteProject = async (id) => {
     if (!confirm("Delete this project?")) return;
     try {
-      const res = await fetch(`${api_base_url}/api/v1/projects/deleteProject`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/projects/deleteProject`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

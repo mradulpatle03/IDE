@@ -12,7 +12,7 @@ const App = () => {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/auth/checkToken`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/auth/checkToken`, {
           method: "GET",
           credentials: "include",
         });

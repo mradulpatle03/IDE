@@ -13,7 +13,7 @@ const Login = () => {
   const dispatch = useDispatch();
   const submitForm = (e) => {
     e.preventDefault();
-    fetch("http://localhost:8000/api/v1/user/login", {
+    fetch(`${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/user/login", {
       mode: "cors",
       method: "POST",
       headers: {

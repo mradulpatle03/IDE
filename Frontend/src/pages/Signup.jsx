@@ -12,7 +12,7 @@ const SignUp = () => {
 
   const submitForm = (e) => {
     e.preventDefault();
-    fetch(api_base_url + "/signUp", {
+    fetch(`${import.meta.env.VITE_BACKEND_URL}` + "/api/v1/user/signUp", {
       mode: "cors",
       method: "POST",
       headers: { "Content-Type": "application/json" },

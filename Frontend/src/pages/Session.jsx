@@ -31,7 +31,7 @@ const Session = () => {
   // ---- Delete Session ----
   const deleteSessionApi = async (id) => {
     const res = await axios.delete(
-      `http://localhost:8000/api/v1/session/deleteMySession/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/session/deleteMySession/${id}`,
       { withCredentials: true }
     );
     return res.data;

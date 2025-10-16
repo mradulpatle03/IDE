@@ -27,7 +27,7 @@ const SessionDetails = () => {
   // Fetch session details
   const getSessionDetail = async () => {
     const res = await axios.get(
-      `http://localhost:8000/api/v1/session/getMySessionById/${param.id}`,
+      `${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/session/getMySessionById/${param.id}`,
       {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
@@ -44,7 +44,7 @@ const SessionDetails = () => {
   // Generate AI Questions mutation
   const GenerateAiQuestionApi = async (payload) => {
     const res = await axios.post(
-      "http://localhost:8000/api/v1/question/addQuestion",
+      `${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/question/addQuestion",
       payload,
       {
         headers: { "Content-Type": "application/json" },

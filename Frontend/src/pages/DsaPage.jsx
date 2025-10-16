@@ -50,7 +50,7 @@ const LeetCodeQuestionUI = () => {
     setQuestions([]);
 
     try {
-      const url = `http://localhost:8000/api/v1/dsa/leetcode-questions?topic=${topic}&difficulty=${difficulty}&company=${company}&limit=${limit}`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}`+`/api/v1/dsa/leetcode-questions?topic=${topic}&difficulty=${difficulty}&company=${company}&limit=${limit}`;
       const res = await axios.post(url);
 
       let data = res.data;

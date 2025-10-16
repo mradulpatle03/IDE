@@ -36,7 +36,7 @@ const UpdateProfile = () => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "http://localhost:8000/api/v1/user/updateProfile",
+        `${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/user/updateProfile",
         formData,
         { withCredentials: true }
       );

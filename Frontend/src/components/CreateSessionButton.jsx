@@ -21,7 +21,7 @@ const CreateSessionButton = () => {
   // --- API Function ---
   const createSessionApi = async () => {
     const res = await axios.post(
-      "http://localhost:8000/api/v1/session/createSession",
+      `${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/session/createSession",
       formData,
       {
         headers: { "Content-Type": "application/json" },

@@ -13,7 +13,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-const API_BASE = "http://localhost:8000/api/v1/roadmap";
+const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`+"/api/v1/roadmap";
 
 const levels = ["Beginner", "Intermediate", "Advanced"];
 const durations = ["1 month", "3 months", "6 months"];

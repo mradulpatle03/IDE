@@ -1,47 +1,52 @@
-# Full-Stack Multi-Code IDE
+# 🚀 PrepPilot — Your AI-Powered Interview Preparation Platform
 
-A **web-based multi-language code IDE** that allows developers to write, run, and manage code projects directly from their browser. Supports multiple programming languages, project management, and an interactive editor experience with a modern developer-friendly interface.
+![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react)
+![Express](https://img.shields.io/badge/Backend-Express.js-green?logo=express)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)
 
----
-
-## 🌟 Features
-
-- **Multi-Language Support**: Python, JavaScript, C, C++, Java, Bash, and more.
-- **Project Management**:
-  - Create, edit, and delete projects.
-  - Organize projects by programming language.
-- **Code Editor**:
-  - Syntax highlighting.
-  - Real-time code execution (depending on backend support).
-  - Resizable editor panels.
-- **Dark Theme & Developer Vibes**:
-  - Modern gradient backgrounds.
-  - Subtle glow effects for a professional dev aesthetic.
-- **Responsive Layout**: Works well on desktop and large-screen devices.
-- **Full-Stack Architecture**:
-  - React frontend.
-  - Node.js + Express backend.
-  - MongoDB database.
+> **PrepPilot** is an **AI-driven interview preparation platform** designed to help you practice coding, master DSA concepts, and plan your career roadmap — all in one place.
 
 ---
 
-## 🛠️ Tech Stack
+##  About the Project
 
-- **Frontend**:
-  - React.js
-  - Tailwind CSS
-  - React Router
-  - Monaco Editor (for code editing)
-  - Select & custom modals
-- **Backend**:
-  - Node.js
-  - Express.js
-  - Mongoose for MongoDB
-- **Database**:
-  - MongoDB (projects and users management)
-- **Other Tools**:
-  - Fetch API
-  - React Toastify for notifications
+PrepPilot reimagines how students and professionals prepare for technical interviews.  
+With integrated AI assistance, topic-wise and company-wise DSA questions, real-time coding IDE, and personalized roadmaps — it’s your **complete interview prep companion**.
 
 ---
 
+##  Core Features
+
+| Feature | Description |
+|----------|-------------|
+|  **AI Roadmap Generator** | Get a fully personalized learning roadmap tailored to your role, experience, and timeline. |
+|  **Topic-wise DSA Practice** | Practice DSA questions for each topic and track your mastery level. |
+|  **Company-wise Question Bank** | Explore real questions asked by top tech companies like Google, Amazon, and Meta. |
+|  **AI Doubt Solver Chatbot** | Instantly resolve your doubts with our intelligent chatbot trained for technical Q&A. |
+|  **Built-in IDE** | Write, run, and test your code directly inside the browser — no setup required! |
+|  **Interactive UI/UX** | Smooth animations, elegant dark theme, and a distraction-free coding experience. |
+
+---
+
+## 🧩 Tech Stack
+
+**Frontend:**
+- ⚛️ React + Vite  
+- 🎨 Tailwind CSS  
+- 🎬 Framer Motion (smooth animations)  
+- 🧭 React Router DOM  
+- 🧠 Lucide React (icons)
+
+**Backend:**
+- 🟢 Node.js + Express.js  
+- 🧩 Modular Controller/Router structure  
+- 🗄️ MongoDB (Mongoose ORM)  
+- ⚙️ JWT Authentication  
+- 🤖 AI Integrations (Google Gemini)
+
+**Others:**
+- Redux Toolkit for state management  
+- Axios for API calls  
+- LocalStorage for user settings persistence
+
+---
