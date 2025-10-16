@@ -59,7 +59,7 @@ const MainRoutes = () => {
           </ProtecRoutes>}
       />
       <Route
-        path="/chat"
+        path="/doubt-solver"
         element={<ProtecRoutes>
             <Chatbot />
           </ProtecRoutes>}
