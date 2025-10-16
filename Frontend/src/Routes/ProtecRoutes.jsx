@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom'
 export const ProtecRoutes = ({children}) => {
     const isAuthenticate = useSelector((state)=>state.userReducer.isAuthenticate)
     if(!isAuthenticate){
-        return <Navigate to = '/' replace/>
+        return <Navigate to = '/login' replace/>
     }
   return children
 }
